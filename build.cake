@@ -20,8 +20,8 @@ var platforms = new [] { "Win32", "x64" }.ToList();
 var configurations = new [] { "Release" }.ToList();
 var solution = "./rewavi.sln";
 var artifactsDir = (DirectoryPath)Directory("./artifacts");
-var binDir = (DirectoryPath)Directory("./bin");
-var objDir = (DirectoryPath)Directory("./obj");
+var binDir = (DirectoryPath)Directory("./src/bin");
+var objDir = (DirectoryPath)Directory("./src/obj");
 
 ///////////////////////////////////////////////////////////////////////////////
 // RELEASE
@@ -62,12 +62,12 @@ var packageBinariesAction = new Action<string,string> ((configuration, platform)
     var output = "rewavi-" + version + "-" + platform + (configuration.Contains("Release") ? "" : ("-" + configuration));
     var outputDir = artifactsDir.Combine(output);
     var outputZip = artifactsDir.CombineWithFilePath(output + ".zip");
-    var rewaviExeFile = File("./bin/rewavi/" + configuration + "/" + platform + "/" + "rewavi.exe");
-    var resilenceExeFile = File("./bin/resilence/" + configuration + "/" + platform + "/" + "resilence.exe");
+    var rewaviExeFile = File("./src/bin/rewavi/" + configuration + "/" + platform + "/" + "rewavi.exe");
+    var resilenceExeFile = File("./src/bin/resilence/" + configuration + "/" + platform + "/" + "resilence.exe");
     CleanDirectory(outputDir);
     CopyFileToDirectory(File("readme.txt"), outputDir);
-    CopyFileToDirectory(File("usage.txt"), outputDir);
-    CopyFileToDirectory(File("usage2.txt"), outputDir);
+    CopyFileToDirectory(File("./docs/usage.txt"), outputDir);
+    CopyFileToDirectory(File("./docs/usage2.txt"), outputDir);
     CopyFileToDirectory(File("license.txt"), outputDir);
     CopyFileToDirectory(rewaviExeFile, outputDir);
     CopyFileToDirectory(resilenceExeFile, outputDir);
