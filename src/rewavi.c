@@ -15,24 +15,55 @@
 #define DEFAULT_MASK {0, 4, 3, 259, 51, 55, 63, 319, 255}
 #define BUFFSIZE 0x20000 /* 128KiB */
 
-static void usage(int ret);
+typedef enum {
+    FORMAT_WAV,
+    FORMAT_RAW
+} format_t;
+
+static void usage(void);
 static void usage2(void);
 static uint32_t numofbits(uint32_t bits);
 
 int main(int argc, char **argv)
 {
     if (argc < 2)
-        usage(1);
+    {
+        usage();
+        return 1;
+    }
 
     if (!strcmp(argv[1], "-h"))
+    {
         usage2();
-
-    int retcode = 0;
-
-    if (!argv[2] || !_stricmp(argv[2], "-x") || !_stricmp(argv[2], "-r")) {
-        PRINT_LOG(LOG_WARNING, "output target is not specified.\n");
-        retcode = 1;
+        return 1;
     }
+
+    if (!argv[2] || !_stricmp(argv[2], "-x") || !_stricmp(argv[2], "-r")) 
+    {
+        PRINT_LOG(LOG_WARNING, "output target is not specified.\n");
+        return 1;
+    }
+
+    format_t format = FORMAT_WAV;
+    if (argc == 4) 
+    {
+        if (!_stricmp(argv[3], "-r"))
+            format = FORMAT_RAW;
+    }
+
+    uint32_t chmask = 0;
+    int have_chmask = 0;
+    if (argc == 5)
+    {
+        if (!_stricmp(argv[3], "-x"))
+        {
+            chmask = atoi(argv[4]);
+            have_chmask = 1;
+        }
+    }
+
+    char* input = argv[1];
+    char* output = argv[2];
 
     AVIFileInit();
     FILE* output_fh = NULL;
@@ -42,18 +73,20 @@ int main(int argc, char **argv)
     WAVEFORMATEX wavefmt;
     LONG fmtsize = sizeof(WAVEFORMATEX);
     int id = 0;
+    int retcode = 0;
 
-    CLOSE_IF_ERR(AVIFileOpen(&avifile, argv[1], OF_READ | OF_SHARE_DENY_WRITE, NULL),
-                "Could not open AVI file \"%s\".\n", argv[1]);
+    CLOSE_IF_ERR(AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL),
+                "Could not open AVI file \"%s\".\n", input);
 
-    while (1) {
+    while (1) 
+    {
         if (AVIFileGetStream(avifile, &avistream, 0, id))
             break;
         if (AVIStreamInfo(avistream, &stream_info, sizeof(AVISTREAMINFO)))
             goto release_stream;
         if (stream_info.fccType != streamtypeAUDIO)
             goto release_stream;
-        PRINT_LOG(LOG_INFO, "Found an audio track(ID %d) in %s\n", id, argv[1]);
+        PRINT_LOG(LOG_INFO, "Found an audio track(ID %d) in %s\n", id, input);
         if (AVIStreamReadFormat(avistream, 0, &wavefmt, &fmtsize))
             goto release_stream;
         if (wavefmt.wFormatTag == WAVE_FORMAT_PCM ||
@@ -65,7 +98,7 @@ release_stream:
         id++;
     }
 
-    CLOSE_IF_ERR(!avistream, "Could not find PCM audio track in \"%s\".\n", argv[1]);
+    CLOSE_IF_ERR(!avistream, "Could not find PCM audio track in \"%s\".\n", input);
 
     PRINT_LOG(LOG_INFO, "streamID %d: %uchannels, %uHz, %ubits, %.3fseconds.\n",
                id, wavefmt.nChannels, wavefmt.nSamplesPerSec, wavefmt.wBitsPerSample,
@@ -80,28 +113,30 @@ release_stream:
     if (retcode)
         goto close;
 
-    uint32_t chmask = 0;
-    if (argc == 5) {
-        if (!_stricmp(argv[3], "-x")) {
-            chmask = atoi(argv[4]);
-            CLOSE_IF_ERR(numofbits(chmask) != wavefmt.nChannels,
-                "Invalid channel mask was specified.\n");
-        }
+    if (have_chmask)
+    {
+        CLOSE_IF_ERR(numofbits(chmask) != wavefmt.nChannels,
+            "Invalid channel mask was specified.\n");
     }
-    else {
+    else
+    {
         uint32_t default_chmask[DEFAULT_MASK_COUNT] = DEFAULT_MASK;
         chmask = wavefmt.nChannels < DEFAULT_MASK_COUNT ?
             default_chmask[wavefmt.nChannels] : (1 << wavefmt.nChannels) - 1;
     }
 
     int dupout = 0;
-    if (!strcmp(argv[2], "-")) {
+    if (!strcmp(output, "-")) 
+    {
         dupout = _dup(_fileno(stdout));
         fclose(stdout);
         _setmode(dupout, _O_BINARY);
         output_fh = _fdopen(dupout, "wb");
-    } else
-        fopen_s(&output_fh, argv[2], "wb");
+    } 
+    else
+    {
+        fopen_s(&output_fh, output, "wb");
+    }
 
     CLOSE_IF_ERR(!output_fh, "Fail to create/open file.\n");
 
@@ -110,14 +145,13 @@ release_stream:
     LONG samples_read;
     LONG nextsample = 0;
 
-    if (argc == 4) {
-        if (!_stricmp(argv[3], "-r"))
-            goto write_data;
-    }
+    if (format == FORMAT_RAW)
+        goto write_data;
 
     uint32_t headersize = chmask ? 60 : 36;
     uint64_t filesize = (uint64_t)wavefmt.nBlockAlign * stream_info.dwLength;
-    if (filesize > 0xFFFFFFFF - headersize) {
+    if (filesize > 0xFFFFFFFF - headersize) 
+    {
         PRINT_LOG(LOG_WARNING, "WAV file will be larger than 4GB.\n");
         filesize = wavefmt.nBlockAlign * (0xFFFFFFFF - headersize / wavefmt.nBlockAlign);
     }
@@ -136,10 +170,11 @@ release_stream:
         alignment is taken into consideration. */
     if (!chmask)
         fwrite(&wavefmt, fmtsize - 2, 1, output_fh); /* never write cbSize! */
-    else {
+    else 
+    {
         WAVEFORMATEXTENSIBLE wavefmt_ext = {
             wavefmt, {wavefmt.wBitsPerSample}, chmask,
-            SUBFORMAT_GUID(wavefmt.wFormatTag)};
+            SUBFORMAT_GUID(wavefmt.wFormatTag) };
         wavefmt_ext.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
         wavefmt_ext.Format.cbSize = 22;
         fwrite(&wavefmt_ext, sizeof(WAVEFORMATEXTENSIBLE), 1, output_fh);
@@ -153,11 +188,13 @@ release_stream:
     fflush(output_fh);
 
 write_data:
-    PRINT_LOG(LOG_INFO, "Writing WAV/RAW file %s ...\n", dupout ? "to stdout" : argv[2]);
+
+    PRINT_LOG(LOG_INFO, "Writing WAV/RAW file %s ...\n", dupout ? "to stdout" : output);
     /* fraction processing at first. */
     AVIStreamRead(avistream, 0, stream_info.dwLength % samples_in_buffer,
                   &buffer, BUFFSIZE, NULL, &samples_read);
-    while ((DWORD)nextsample < stream_info.dwLength) {
+    while ((DWORD)nextsample < stream_info.dwLength) 
+    {
         fwrite(buffer, wavefmt.nBlockAlign, samples_read, output_fh);
         nextsample += samples_read;
         AVIStreamRead(avistream, nextsample, samples_in_buffer, &buffer,
@@ -170,17 +207,22 @@ write_data:
     PRINT_LOG(LOG_INFO, "File written successfully.\n");
 
 close:
+
     if (output_fh)
         fclose(output_fh);
+
     if (avistream)
         AVIStreamRelease(avistream);
+
     if (avifile)
         AVIFileRelease(avifile);
+
     AVIFileExit();
+
     return retcode;
 }
 
-static void usage(int ret)
+static void usage(void)
 {
     fprintf(stderr,
         "REWAVI - rewritten/modified WAVI ver.%s\n"
@@ -197,13 +239,11 @@ static void usage(int ret)
         "       If channel mask is not specified, the defaut value will be set.\n"
         "\n"
         " 'rewavi -h' will display more complicated description.\n", VERSION);
-    if (ret)
-        exit(ret);
 }
 
 static void usage2(void)
 {
-    usage(0);
+    usage();
     fprintf(stderr,
         "\n"
         "This utility extracts the first uncompressed PCM audio track\n"
@@ -260,10 +300,10 @@ static void usage2(void)
         " 263   4  BC                   FC FR FL  like Dpl I\n"
         " 271   5  BC                LF FC FR FL\n"
         "  59   5              BR BL LF    FR FL\n");
-    exit(1);
 }
 
-static uint32_t numofbits(uint32_t bits) {
+static uint32_t numofbits(uint32_t bits) 
+{
     bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
     bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
     bits = (bits & 0x0f0f0f0f) + (bits >> 4 & 0x0f0f0f0f);
