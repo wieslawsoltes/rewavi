@@ -1,5 +1,4 @@
-#ifndef REWAVI_COMMON_H
-#define REWAVI_COMMON_H
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,5 +24,3 @@ typedef enum {
 } log_t;
 
 int rewavi_log(const char *name, log_t level, const char *message, ...);
-
-#endif /* REWAVI_COMMON_H */
