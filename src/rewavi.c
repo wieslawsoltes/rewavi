@@ -197,8 +197,8 @@ release_stream:
         fflush(output_fh);
     }
 
+    PRINT_LOG(LOG_INFO, "Writing %s file %s ...\n", (format == FORMAT_WAV) ? "WAV" : "RAW", dupout ? "to stdout" : output);
 
-    PRINT_LOG(LOG_INFO, "Writing WAV/RAW file %s ...\n", dupout ? "to stdout" : output);
     /* fraction processing at first. */
     AVIStreamRead(avistream, 0, stream_info.dwLength % samples_in_buffer,
                   &buffer, BUFFSIZE, NULL, &samples_read);
