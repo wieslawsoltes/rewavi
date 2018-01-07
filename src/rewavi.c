@@ -62,13 +62,11 @@ int main(int argc, char **argv)
     }
 
     uint32_t chmask = 0;
-    int have_chmask = 0;
     if (argc == 5)
     {
         if (!_stricmp(argv[3], "-x"))
         {
             chmask = atoi(argv[4]);
-            have_chmask = 1;
         }
         else
         {
@@ -125,7 +123,7 @@ release_stream:
     if (retcode)
         goto close;
 
-    if (have_chmask)
+    if (chmask)
     {
         CLOSE_IF_ERR(numofbits(chmask) != wavefmt.nChannels,
             "Invalid channel mask was specified.\n");
