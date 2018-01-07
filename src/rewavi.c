@@ -44,11 +44,21 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    char* input = argv[1];
+    char* output = argv[2];
+
     format_t format = FORMAT_WAV;
     if (argc == 4) 
     {
         if (!_stricmp(argv[3], "-r"))
+        {
             format = FORMAT_RAW;
+        }
+        else
+        {
+            PRINT_LOG(LOG_WARNING, "raw format is not specified.\n");
+            return 1;
+        }
     }
 
     uint32_t chmask = 0;
@@ -60,10 +70,12 @@ int main(int argc, char **argv)
             chmask = atoi(argv[4]);
             have_chmask = 1;
         }
+        else
+        {
+            PRINT_LOG(LOG_WARNING, "channel mask is not specified.\n");
+            return 1;
+        }
     }
-
-    char* input = argv[1];
-    char* output = argv[2];
 
     AVIFileInit();
     FILE* output_fh = NULL;
