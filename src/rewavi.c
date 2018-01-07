@@ -54,6 +54,11 @@ int main(int argc, char **argv)
         {
             format = FORMAT_RAW;
         }
+        else if (!_stricmp(argv[3], "-x"))
+        {
+            PRINT_LOG(LOG_WARNING, "channel mask is not specified.\n");
+            return 1;
+        }
         else
         {
             PRINT_LOG(LOG_WARNING, "raw format is not specified.\n");
