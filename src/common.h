@@ -15,7 +15,7 @@
 #define WAVE_FORMAT_IEEE_FLOAT 3
 #endif
 
-#define VERSION "0.02"
+#define VERSION "0.03"
 
 typedef enum {
     LOG_INFO,
