@@ -22,7 +22,6 @@
     <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common.c" />
     <ClCompile Include="resilence.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

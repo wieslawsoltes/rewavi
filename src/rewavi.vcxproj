@@ -22,7 +22,6 @@
     <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common.c" />
     <ClCompile Include="rewavi.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
