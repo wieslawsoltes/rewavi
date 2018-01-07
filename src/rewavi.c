@@ -155,49 +155,48 @@ release_stream:
     LONG samples_read;
     LONG nextsample = 0;
 
-    if (format == FORMAT_RAW)
-        goto write_data;
-
-    uint32_t headersize = chmask ? 60 : 36;
-    uint64_t filesize = (uint64_t)wavefmt.nBlockAlign * stream_info.dwLength;
-    if (filesize > 0xFFFFFFFF - headersize) 
+    if (format == FORMAT_WAV)
     {
-        PRINT_LOG(LOG_WARNING, "WAV file will be larger than 4GB.\n");
-        filesize = wavefmt.nBlockAlign * (0xFFFFFFFF - headersize / wavefmt.nBlockAlign);
+        uint32_t headersize = chmask ? 60 : 36;
+        uint64_t filesize = (uint64_t)wavefmt.nBlockAlign * stream_info.dwLength;
+        if (filesize > 0xFFFFFFFF - headersize)
+        {
+            PRINT_LOG(LOG_WARNING, "WAV file will be larger than 4GB.\n");
+            filesize = wavefmt.nBlockAlign * (0xFFFFFFFF - headersize / wavefmt.nBlockAlign);
+        }
+        uint32_t size_for_write = (uint32_t)filesize + headersize;
+
+        /* riff file header */
+        fwrite("RIFF", 1, 4, output_fh);
+        fwrite(&size_for_write, 4, 1, output_fh);
+        fwrite("WAVE", 1, 4, output_fh);
+
+        /* format chunk */
+        fwrite("fmt ", 1, 4, output_fh);
+        size_for_write = chmask ? 40 : 16;
+        fwrite(&size_for_write, 4, 1, output_fh);
+        /* As for the WAVEFORMATEX / WAVEFORMATEXTENSIBLE structure,
+            alignment is taken into consideration. */
+        if (!chmask)
+            fwrite(&wavefmt, fmtsize - 2, 1, output_fh); /* never write cbSize! */
+        else
+        {
+            WAVEFORMATEXTENSIBLE wavefmt_ext = {
+                wavefmt, {wavefmt.wBitsPerSample}, chmask,
+                SUBFORMAT_GUID(wavefmt.wFormatTag) };
+            wavefmt_ext.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+            wavefmt_ext.Format.cbSize = 22;
+            fwrite(&wavefmt_ext, sizeof(WAVEFORMATEXTENSIBLE), 1, output_fh);
+        }
+
+        /* data chunk*/
+        fwrite("data", 1, 4, output_fh);
+        size_for_write = (uint32_t)filesize;
+        fwrite(&size_for_write, 4, 1, output_fh);
+
+        fflush(output_fh);
     }
-    uint32_t size_for_write = (uint32_t)filesize + headersize;
 
-    /* riff file header */
-    fwrite("RIFF", 1, 4, output_fh);
-    fwrite(&size_for_write, 4, 1, output_fh);
-    fwrite("WAVE", 1, 4, output_fh);
-
-    /* format chunk */
-    fwrite("fmt ", 1, 4, output_fh);
-    size_for_write = chmask ? 40 : 16;
-    fwrite(&size_for_write, 4, 1, output_fh);
-    /* As for the WAVEFORMATEX / WAVEFORMATEXTENSIBLE structure,
-        alignment is taken into consideration. */
-    if (!chmask)
-        fwrite(&wavefmt, fmtsize - 2, 1, output_fh); /* never write cbSize! */
-    else 
-    {
-        WAVEFORMATEXTENSIBLE wavefmt_ext = {
-            wavefmt, {wavefmt.wBitsPerSample}, chmask,
-            SUBFORMAT_GUID(wavefmt.wFormatTag) };
-        wavefmt_ext.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-        wavefmt_ext.Format.cbSize = 22;
-        fwrite(&wavefmt_ext, sizeof(WAVEFORMATEXTENSIBLE), 1, output_fh);
-    }
-
-    /* data chunk*/
-    fwrite("data", 1, 4, output_fh);
-    size_for_write = (uint32_t)filesize;
-    fwrite(&size_for_write, 4, 1, output_fh);
-
-    fflush(output_fh);
-
-write_data:
 
     PRINT_LOG(LOG_INFO, "Writing WAV/RAW file %s ...\n", dupout ? "to stdout" : output);
     /* fraction processing at first. */
