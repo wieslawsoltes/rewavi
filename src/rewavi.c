@@ -8,9 +8,6 @@
 #define PRINT_LOG(level, ...) \
     rewavi_log("rewavi", level, __VA_ARGS__)
 
-#define CLOSE_IF_ERR(cond, ...) \
-    if (cond) {retcode = PRINT_LOG(LOG_ERROR, __VA_ARGS__); goto close;}
-
 #define DEFAULT_MASK_COUNT 9
 #define DEFAULT_MASK {0, 4, 3, 259, 51, 55, 63, 319, 255}
 #define BUFFSIZE 0x20000 /* 128KiB */
@@ -90,8 +87,11 @@ int main(int argc, char **argv)
     int id = 0;
     int retcode = 0;
 
-    CLOSE_IF_ERR(AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL),
-                "Could not open AVI file \"%s\".\n", input);
+    if (AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL)) 
+    { 
+        retcode = PRINT_LOG(LOG_ERROR, "Could not open AVI file \"%s\".\n", input);
+        goto close; 
+    }
 
     while (1) 
     {
@@ -113,7 +113,11 @@ release_stream:
         id++;
     }
 
-    CLOSE_IF_ERR(!avistream, "Could not find PCM audio track in \"%s\".\n", input);
+    if (!avistream) 
+    { 
+        retcode = PRINT_LOG(LOG_ERROR, "Could not find PCM audio track in \"%s\".\n", input);
+        goto close; 
+    }
 
     PRINT_LOG(LOG_INFO, "streamID %d: %uchannels, %uHz, %ubits, %.3fseconds.\n",
                id, wavefmt.nChannels, wavefmt.nSamplesPerSec, wavefmt.wBitsPerSample,
@@ -122,16 +126,19 @@ release_stream:
     if (wavefmt.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
         PRINT_LOG(LOG_INFO, "Audio track contains floating-point samples.\n");
 
-    CLOSE_IF_ERR(BUFFSIZE < wavefmt.nBlockAlign,
-                 "Too large samples; audio track is definitely invalid.\n");
-
-    if (retcode)
-        goto close;
+    if (BUFFSIZE < wavefmt.nBlockAlign) 
+    { 
+        retcode = PRINT_LOG(LOG_ERROR, "Too large samples; audio track is definitely invalid.\n");
+        goto close; 
+    }
 
     if (chmask)
     {
-        CLOSE_IF_ERR(numofbits(chmask) != wavefmt.nChannels,
-            "Invalid channel mask was specified.\n");
+        if (numofbits(chmask) != wavefmt.nChannels) 
+        { 
+            retcode = PRINT_LOG(LOG_ERROR, "Invalid channel mask was specified.\n");
+            goto close; 
+        }
     }
     else
     {
@@ -153,7 +160,11 @@ release_stream:
         fopen_s(&output_fh, output, "wb");
     }
 
-    CLOSE_IF_ERR(!output_fh, "Fail to create/open file.\n");
+    if (!output_fh) 
+    { 
+        retcode = PRINT_LOG(LOG_ERROR, "Fail to create/open file.\n");
+        goto close; 
+    }
 
     char buffer[BUFFSIZE];
     uint32_t samples_in_buffer = BUFFSIZE / wavefmt.nBlockAlign;
@@ -228,7 +239,12 @@ release_stream:
     fprintf(stderr, "\n");
     fflush(output_fh);
 
-    CLOSE_IF_ERR(nextsample != stream_info.dwLength, "Writing failed.\n");
+    if (nextsample != stream_info.dwLength) 
+    { 
+        retcode = PRINT_LOG(LOG_ERROR, "Writing failed.\n");
+        goto close; 
+    }
+
     PRINT_LOG(LOG_INFO, "File written successfully.\n");
 
 close:
