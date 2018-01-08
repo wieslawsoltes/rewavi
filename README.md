@@ -35,7 +35,7 @@ RESILENCE - tool of generate silence PCM WAV file.
 
 ## Changelog
 
-* v0.02 (2017-01-06)
+* v0.02 (2018-01-06)
   - Visual Studio 2017 support.
   - Bug fixes.
   - x64 builds.
