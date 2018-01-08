@@ -38,7 +38,7 @@ int main(int argc, char **argv)
     if (!argv[2] || !_stricmp(argv[2], "-x") || !_stricmp(argv[2], "-r")) 
     {
         PRINT_LOG(LOG_WARNING, "output target is not specified.\n");
-        return 1;
+        return 2;
     }
 
     char* input = argv[1];
@@ -54,12 +54,12 @@ int main(int argc, char **argv)
         else if (!_stricmp(argv[3], "-x"))
         {
             PRINT_LOG(LOG_WARNING, "channel mask is not specified.\n");
-            return 1;
+            return 2;
         }
         else
         {
             PRINT_LOG(LOG_WARNING, "raw format is not specified.\n");
-            return 1;
+            return 2;
         }
     }
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
         else
         {
             PRINT_LOG(LOG_WARNING, "channel mask is not specified.\n");
-            return 1;
+            return 2;
         }
     }
 
@@ -85,12 +85,12 @@ int main(int argc, char **argv)
     WAVEFORMATEX wavefmt;
     LONG fmtsize = sizeof(WAVEFORMATEX);
     int id = 0;
-    int retcode = 0;
 
     if (AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL)) 
     { 
-        retcode = PRINT_LOG(LOG_ERROR, "Could not open AVI file \"%s\".\n", input);
-        goto close; 
+        PRINT_LOG(LOG_ERROR, "Could not open AVI file \"%s\".\n", input);
+        AVIFileExit();
+        return 1;
     }
 
     while (1) 
@@ -115,8 +115,10 @@ release_stream:
 
     if (!avistream) 
     { 
-        retcode = PRINT_LOG(LOG_ERROR, "Could not find PCM audio track in \"%s\".\n", input);
-        goto close; 
+        PRINT_LOG(LOG_ERROR, "Could not find PCM audio track in \"%s\".\n", input);
+        AVIFileRelease(avifile);
+        AVIFileExit();
+        return 1;
     }
 
     PRINT_LOG(LOG_INFO, "streamID %d: %uchannels, %uHz, %ubits, %.3fseconds.\n",
@@ -128,16 +130,22 @@ release_stream:
 
     if (BUFFSIZE < wavefmt.nBlockAlign) 
     { 
-        retcode = PRINT_LOG(LOG_ERROR, "Too large samples; audio track is definitely invalid.\n");
-        goto close; 
+        PRINT_LOG(LOG_ERROR, "Too large samples; audio track is definitely invalid.\n");
+        AVIStreamRelease(avistream);
+        AVIFileRelease(avifile);
+        AVIFileExit();
+        return 1;
     }
 
     if (chmask)
     {
         if (numofbits(chmask) != wavefmt.nChannels) 
         { 
-            retcode = PRINT_LOG(LOG_ERROR, "Invalid channel mask was specified.\n");
-            goto close; 
+            PRINT_LOG(LOG_ERROR, "Invalid channel mask was specified.\n");
+            AVIStreamRelease(avistream);
+            AVIFileRelease(avifile);
+            AVIFileExit();
+            return 1;
         }
     }
     else
@@ -162,8 +170,11 @@ release_stream:
 
     if (!output_fh) 
     { 
-        retcode = PRINT_LOG(LOG_ERROR, "Fail to create/open file.\n");
-        goto close; 
+        PRINT_LOG(LOG_ERROR, "Fail to create/open file.\n");
+        AVIStreamRelease(avistream);
+        AVIFileRelease(avifile);
+        AVIFileExit();
+        return 1;
     }
 
     char buffer[BUFFSIZE];
@@ -239,28 +250,21 @@ release_stream:
     fprintf(stderr, "\n");
     fflush(output_fh);
 
-    if (nextsample != stream_info.dwLength) 
-    { 
-        retcode = PRINT_LOG(LOG_ERROR, "Writing failed.\n");
-        goto close; 
-    }
-
-    PRINT_LOG(LOG_INFO, "File written successfully.\n");
-
-close:
-
-    if (output_fh)
-        fclose(output_fh);
-
-    if (avistream)
-        AVIStreamRelease(avistream);
-
-    if (avifile)
-        AVIFileRelease(avifile);
-
+    fclose(output_fh);
+    AVIStreamRelease(avistream);
+    AVIFileRelease(avifile);
     AVIFileExit();
 
-    return retcode;
+    if (nextsample != stream_info.dwLength) 
+    { 
+        PRINT_LOG(LOG_ERROR, "Writing failed.\n");
+        return 1;
+    }
+    else
+    {
+        PRINT_LOG(LOG_INFO, "File written successfully.\n");
+        return 0;
+    }
 }
 
 static void usage(void)
