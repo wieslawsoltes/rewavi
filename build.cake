@@ -19,6 +19,7 @@ var target = Argument("target", "Default");
 var platforms = new [] { "Win32", "x64" }.ToList();
 var configurations = new [] { "Release" }.ToList();
 var solution = "./rewavi.sln";
+var versionHeaderPath = (FilePath)File("./src/version.h");
 var artifactsDir = (DirectoryPath)Directory("./artifacts");
 var binDir = (DirectoryPath)Directory("./src/bin");
 var objDir = (DirectoryPath)Directory("./src/obj");
@@ -40,9 +41,17 @@ var isRelease =  !isLocalBuild && !isPullRequest && isMainRepo && isMasterBranch
 // VERSION
 ///////////////////////////////////////////////////////////////////////////////
 
-var version = "0.03";
+var text = System.IO.File.ReadAllText(versionHeaderPath.FullPath);
+var split = text.Split(new char [] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+var major = split[0].Split(new char [] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+var minor = split[1].Split(new char [] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+var revision = split[2].Split(new char [] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+var build = split[3].Split(new char [] { ' ' }, StringSplitOptions.RemoveEmptyEntries)[2];
+var version = major + "." + minor;
+var suffix = (isRelease || !isAppVeyorBuild) ? "" : "-build" + EnvironmentVariable("APPVEYOR_BUILD_NUMBER") + "-alpha";
 
-Information("Version: {0}", version);
+Information("Defined Version: {0}.{1}.{2}.{3}", major, minor, revision, build);
+Information("Release Version: {0}", version + suffix);
 
 ///////////////////////////////////////////////////////////////////////////////
 // ACTIONS
@@ -59,7 +68,7 @@ var buildSolutionAction = new Action<string,string,string> ((solution, configura
 
 var packageBinariesAction = new Action<string,string> ((configuration, platform) => 
 {
-    var output = "rewavi-" + version + "-" + platform + (configuration.Contains("Release") ? "" : ("-" + configuration));
+    var output = "rewavi-" + version + suffix + "-" + platform + (configuration.Contains("Release") ? "" : ("-" + configuration));
     var outputDir = artifactsDir.Combine(output);
     var outputZip = artifactsDir.CombineWithFilePath(output + ".zip");
     var rewaviExeFile = File("./src/bin/rewavi/" + configuration + "/" + platform + "/" + "rewavi.exe");
