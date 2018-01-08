@@ -65,10 +65,10 @@ var packageBinariesAction = new Action<string,string> ((configuration, platform)
     var rewaviExeFile = File("./src/bin/rewavi/" + configuration + "/" + platform + "/" + "rewavi.exe");
     var resilenceExeFile = File("./src/bin/resilence/" + configuration + "/" + platform + "/" + "resilence.exe");
     CleanDirectory(outputDir);
-    CopyFileToDirectory(File("readme.txt"), outputDir);
+    CopyFileToDirectory(File("README.md"), outputDir);
+    CopyFileToDirectory(File("LICENSE.TXT"), outputDir);
     CopyFileToDirectory(File("./docs/usage.txt"), outputDir);
     CopyFileToDirectory(File("./docs/usage2.txt"), outputDir);
-    CopyFileToDirectory(File("license.txt"), outputDir);
     CopyFileToDirectory(rewaviExeFile, outputDir);
     CopyFileToDirectory(resilenceExeFile, outputDir);
     Zip(outputDir, outputZip);
