@@ -129,6 +129,7 @@ static void usage(void)
     fprintf(stderr,
         "RESILENCE - rewritten/modified SILENCE ver.%s\n"
         "   (c) 2011 Oka Motofumi\n"
+        "   (c) 2018 Wieslaw Soltes\n"
         "   original SILENCE (c) 2007 Tamas Kurucsai\n"
         " Licensed under the terms of the GNU General Public License verion2 or later\n"
         "\n"
