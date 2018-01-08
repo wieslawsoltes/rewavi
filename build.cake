@@ -32,7 +32,7 @@ var isAppVeyorBuild = AppVeyor.IsRunningOnAppVeyor;
 var isLocalBuild = BuildSystem.IsLocalBuild;
 var isPullRequest = BuildSystem.AppVeyor.Environment.PullRequest.IsPullRequest;
 var isMainRepo = StringComparer.OrdinalIgnoreCase.Equals("wieslawsoltes/rewavi", BuildSystem.AppVeyor.Environment.Repository.Name);
-var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("Refactoring", BuildSystem.AppVeyor.Environment.Repository.Branch);
+var isMasterBranch = StringComparer.OrdinalIgnoreCase.Equals("master", BuildSystem.AppVeyor.Environment.Repository.Branch);
 var isTagged = BuildSystem.AppVeyor.Environment.Repository.Tag.IsTag 
                && !string.IsNullOrWhiteSpace(BuildSystem.AppVeyor.Environment.Repository.Tag.Name);
 var isRelease =  !isLocalBuild && !isPullRequest && isMainRepo && isMasterBranch && isTagged;
