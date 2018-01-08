@@ -47,7 +47,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    if (!argv[2] || !_stricmp(argv[2], "-x") || !_stricmp(argv[2], "-r")) 
+    if (!argv[2] || !_stricmp(argv[2], "-x") || !_stricmp(argv[2], "-r"))
     {
         fprintf(stderr, "output target is not specified.\n");
         return 2;
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     char* output = argv[2];
 
     format_t format = FORMAT_WAV;
-    if (argc == 4) 
+    if (argc == 4)
     {
         if (!_stricmp(argv[3], "-r"))
         {
@@ -98,35 +98,40 @@ int main(int argc, char **argv)
     LONG fmtsize = sizeof(WAVEFORMATEX);
     int id = 0;
 
-    if (AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL)) 
-    { 
+    if (AVIFileOpen(&avifile, input, OF_READ | OF_SHARE_DENY_WRITE, NULL))
+    {
         fprintf(stderr, "Could not open AVI file \"%s\".\n", input);
         AVIFileExit();
         return 1;
     }
 
-    while (1) 
+    while (1)
     {
         if (AVIFileGetStream(avifile, &avistream, 0, id))
             break;
+
         if (AVIStreamInfo(avistream, &stream_info, sizeof(AVISTREAMINFO)))
             goto release_stream;
+
         if (stream_info.fccType != streamtypeAUDIO)
             goto release_stream;
+
         fprintf(stderr, "Found an audio track(ID %d) in %s\n", id, input);
         if (AVIStreamReadFormat(avistream, 0, &wavefmt, &fmtsize))
             goto release_stream;
+
         if (wavefmt.wFormatTag == WAVE_FORMAT_PCM ||
             wavefmt.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
             break;
-release_stream:
+
+    release_stream:
         AVIStreamRelease(avistream);
         avistream = NULL;
         id++;
     }
 
-    if (!avistream) 
-    { 
+    if (!avistream)
+    {
         fprintf(stderr, "Could not find PCM audio track in \"%s\".\n", input);
         AVIFileRelease(avifile);
         AVIFileExit();
@@ -140,8 +145,8 @@ release_stream:
     if (wavefmt.wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
         fprintf(stderr, "Audio track contains floating-point samples.\n");
 
-    if (BUFFSIZE < wavefmt.nBlockAlign) 
-    { 
+    if (BUFFSIZE < wavefmt.nBlockAlign)
+    {
         fprintf(stderr, "Too large samples; audio track is definitely invalid.\n");
         AVIStreamRelease(avistream);
         AVIFileRelease(avifile);
@@ -151,8 +156,8 @@ release_stream:
 
     if (chmask)
     {
-        if (numofbits(chmask) != wavefmt.nChannels) 
-        { 
+        if (numofbits(chmask) != wavefmt.nChannels)
+        {
             fprintf(stderr, "Invalid channel mask was specified.\n");
             AVIStreamRelease(avistream);
             AVIFileRelease(avifile);
@@ -168,20 +173,20 @@ release_stream:
     }
 
     int dupout = 0;
-    if (!strcmp(output, "-")) 
+    if (!strcmp(output, "-"))
     {
         dupout = _dup(_fileno(stdout));
         fclose(stdout);
         _setmode(dupout, _O_BINARY);
         output_fh = _fdopen(dupout, "wb");
-    } 
+    }
     else
     {
         fopen_s(&output_fh, output, "wb");
     }
 
-    if (!output_fh) 
-    { 
+    if (!output_fh)
+    {
         fprintf(stderr, "Fail to create/open file.\n");
         AVIStreamRelease(avistream);
         AVIFileRelease(avifile);
@@ -216,10 +221,13 @@ release_stream:
         fwrite("fmt ", 1, 4, output_fh);
         size_for_write = chmask ? 40 : 16;
         fwrite(&size_for_write, 4, 1, output_fh);
-        /* As for the WAVEFORMATEX / WAVEFORMATEXTENSIBLE structure,
-            alignment is taken into consideration. */
+
+        /* As for the WAVEFORMATEX / WAVEFORMATEXTENSIBLE structure, alignment is taken into consideration. */
         if (!chmask)
-            fwrite(&wavefmt, fmtsize - 2, 1, output_fh); /* never write cbSize! */
+        {
+            /* never write cbSize! */
+            fwrite(&wavefmt, fmtsize - 2, 1, output_fh);
+        }
         else
         {
             WAVEFORMATEXTENSIBLE wavefmt_ext = {
@@ -242,8 +250,8 @@ release_stream:
 
     /* fraction processing at first. */
     AVIStreamRead(avistream, 0, stream_info.dwLength % samples_in_buffer,
-                  &buffer, BUFFSIZE, NULL, &samples_read);
-    while (nextsample < stream_info.dwLength) 
+        &buffer, BUFFSIZE, NULL, &samples_read);
+    while (nextsample < stream_info.dwLength)
     {
         fwrite(buffer, wavefmt.nBlockAlign, samples_read, output_fh);
         nextsample += samples_read;
@@ -256,7 +264,7 @@ release_stream:
         }
 
         AVIStreamRead(avistream, nextsample, samples_in_buffer, &buffer,
-                      BUFFSIZE, NULL, &samples_read); /* The last reading is just ignored. */
+            BUFFSIZE, NULL, &samples_read); /* The last reading is just ignored. */
     }
 
     fprintf(stderr, "\n");
@@ -267,8 +275,8 @@ release_stream:
     AVIFileRelease(avifile);
     AVIFileExit();
 
-    if (nextsample != stream_info.dwLength) 
-    { 
+    if (nextsample != stream_info.dwLength)
+    {
         fprintf(stderr, "Writing failed.\n");
         return 1;
     }
@@ -360,11 +368,11 @@ static void usage2(void)
         "  59   5              BR BL LF    FR FL\n");
 }
 
-static uint32_t numofbits(uint32_t bits) 
+static uint32_t numofbits(uint32_t bits)
 {
     bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
     bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
     bits = (bits & 0x0f0f0f0f) + (bits >> 4 & 0x0f0f0f0f);
     bits = (bits & 0x00ff00ff) + (bits >> 8 & 0x00ff00ff);
-    return (bits & 0x0000ffff) + (bits >>16 & 0x0000ffff);
+    return (bits & 0x0000ffff) + (bits >> 16 & 0x0000ffff);
 }
