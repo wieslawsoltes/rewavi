@@ -241,6 +241,7 @@ static void usage(void)
     fprintf(stderr,
         "REWAVI - rewritten/modified WAVI ver.%s\n"
         " (c) 2011 Oka Motofumi\n"
+        " (c) 2018 Wieslaw Soltes\n"
         " WAVI original - (c) 2007 Tamas Kurucsai, with lots of help from tebasuna51\n"
         "Licensed under the terms of the GNU General Public License version2 or later.\n"
         "\n"
