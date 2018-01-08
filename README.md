@@ -1,6 +1,6 @@
 # REWAVI
 
-[![Build status](https://ci.appveyor.com/api/projects/status/ffcocigoiclo2ekr/branch/Refactoring?svg=true)](https://ci.appveyor.com/project/wieslawsoltes/rewavi/branch/Refactoring)
+[![Build status](https://ci.appveyor.com/api/projects/status/ffcocigoiclo2ekr/branch/master?svg=true)](https://ci.appveyor.com/project/wieslawsoltes/rewavi/branch/master)
 
 [![Github All Releases](https://img.shields.io/github/downloads/wieslawsoltes/rewavi/total.svg)](https://github.com/wieslawsoltes/rewavi/releases)
 [![GitHub Release](https://img.shields.io/github/release/wieslawsoltes/rewavi.svg)](https://github.com/wieslawsoltes/rewavi/releases/latest)
@@ -47,8 +47,8 @@ RESILENCE - tool of generate silence PCM WAV file.
 
 ## Usage
 
-* [Usage](https://github.com/wieslawsoltes/rewavi/blob/Refactoring/docs/usage.txt)
-* [Usage2](https://github.com/wieslawsoltes/rewavi/blob/Refactoring/docs/usage2.txt)
+* [Usage](https://github.com/wieslawsoltes/rewavi/blob/master/docs/usage.txt)
+* [Usage2](https://github.com/wieslawsoltes/rewavi/blob/master/docs/usage2.txt)
 
 ## Troubleshooting
 
