@@ -141,7 +141,8 @@ int main(int argc, char **argv)
     fwrite("WAVE", 1, 4, output_fh);
     fwrite("fmt ", 1, 4, output_fh);
     fwrite("\x10\x00\x00\x00", 1, 4, output_fh);
-    fwrite(&wavefmt, sizeof(WAVEFORMATEX) - 2, 1, output_fh); /* never write cbSize! */
+    /* never write cbSize! */
+    fwrite(&wavefmt, sizeof(WAVEFORMATEX) - 2, 1, output_fh);
     fwrite("data", 1, 4, output_fh);
     size_for_write -= 36;
     fwrite(&size_for_write, 4, 1, output_fh);

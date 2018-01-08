@@ -249,8 +249,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "Writing %s file %s ...\n", (format == FORMAT_WAV) ? "WAV" : "RAW", dupout ? "to stdout" : output);
 
     /* fraction processing at first. */
-    AVIStreamRead(avistream, 0, stream_info.dwLength % samples_in_buffer,
-        &buffer, BUFFSIZE, NULL, &samples_read);
+    AVIStreamRead(avistream, 0, stream_info.dwLength % samples_in_buffer, &buffer, BUFFSIZE, NULL, &samples_read);
     while (nextsample < stream_info.dwLength)
     {
         fwrite(buffer, wavefmt.nBlockAlign, samples_read, output_fh);
@@ -263,8 +262,8 @@ int main(int argc, char **argv)
             nPreviousProgress = nProgress;
         }
 
-        AVIStreamRead(avistream, nextsample, samples_in_buffer, &buffer,
-            BUFFSIZE, NULL, &samples_read); /* The last reading is just ignored. */
+        /* The last reading is just ignored. */
+        AVIStreamRead(avistream, nextsample, samples_in_buffer, &buffer, BUFFSIZE, NULL, &samples_read);
     }
 
     fprintf(stderr, "\n");
