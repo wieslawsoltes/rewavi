@@ -54,6 +54,8 @@ RESILENCE - tool of generate silence PCM WAV file.
 
 To report issues please use [issues tracker](https://github.com/wieslawsoltes/rewavi/issues).
 
+For more informations and help please visit [this forum thread](http://forum.doom9.org/showthread.php?t=175174).
+
 ## Sources
 
 Sources are available in the [git source code repository](https://github.com/wieslawsoltes/rewavi/).
