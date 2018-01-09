@@ -75,6 +75,7 @@ var packageBinariesAction = new Action<string,string> ((configuration, platform)
     var resilenceExeFile = File("./src/bin/resilence/" + configuration + "/" + platform + "/" + "resilence.exe");
     CleanDirectory(outputDir);
     CopyFileToDirectory(File("README.md"), outputDir);
+    CopyFileToDirectory(File("CHANGELOG.md"), outputDir);
     CopyFileToDirectory(File("LICENSE.TXT"), outputDir);
     CopyFileToDirectory(File("./docs/usage.txt"), outputDir);
     CopyFileToDirectory(File("./docs/usage2.txt"), outputDir);
