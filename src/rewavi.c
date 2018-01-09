@@ -198,8 +198,6 @@ int main(int argc, char **argv)
     uint32_t samples_in_buffer = BUFFSIZE / wavefmt.nBlockAlign;
     LONG samples_read;
     DWORD nextsample = 0;
-    int nProgress = 0;
-    int nPreviousProgress = -1;
 
     if (format == FORMAT_WAV)
     {
@@ -254,14 +252,9 @@ int main(int argc, char **argv)
     {
         fwrite(buffer, wavefmt.nBlockAlign, samples_read, output_fh);
         nextsample += samples_read;
-
-        nProgress = (int)(((double)nextsample / (double)stream_info.dwLength) * 100);
-        if (nProgress != nPreviousProgress)
-        {
-            fprintf(stderr, "\rProgress: %d%% (%lu/%lu)", nProgress, nextsample, stream_info.dwLength);
-            nPreviousProgress = nProgress;
-        }
-
+        fprintf(stderr, "\rProgress: %d%% (%lu/%lu)", 
+            (int)(((double)nextsample / (double)stream_info.dwLength) * 100), 
+            nextsample, stream_info.dwLength);
         /* The last reading is just ignored. */
         AVIStreamRead(avistream, nextsample, samples_in_buffer, &buffer, BUFFSIZE, NULL, &samples_read);
     }

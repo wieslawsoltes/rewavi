@@ -1,5 +1,9 @@
 # Changelog
 
+### Version 0.06 (2018-01-09)
+
+- Changed progress output interval.
+
 ### Version 0.05 (2018-01-09)
 
 - Refactored common code.

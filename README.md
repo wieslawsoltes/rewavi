@@ -12,8 +12,8 @@ rewritten/modified WAVI
 
 | Platform           | Character Set  | Version   | Download                                                                                                                |
 |--------------------|----------------|-----------|-------------------------------------------------------------------------------------------------------------------------|
-| Windows 32-bit     | MBCS           | 0.05      | [rewavi-0.05-Win32.zip](https://github.com/wieslawsoltes/rewavi/releases/download/0.05/rewavi-0.05-Win32.zip)           |
-| Windows 64-bit     | MBCS           | 0.05      | [rewavi-0.05-x64.zip](https://github.com/wieslawsoltes/rewavi/releases/download/0.05/rewavi-0.05-x64.zip)               |
+| Windows 32-bit     | MBCS           | 0.06      | [rewavi-0.06-Win32.zip](https://github.com/wieslawsoltes/rewavi/releases/download/0.06/rewavi-0.06-Win32.zip)           |
+| Windows 64-bit     | MBCS           | 0.06      | [rewavi-0.06-x64.zip](https://github.com/wieslawsoltes/rewavi/releases/download/0.06/rewavi-0.06-x64.zip)               |
 
 ## System requirements
 

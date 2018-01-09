@@ -1,5 +1,5 @@
 #define VERSION_MAJOR               0
-#define VERSION_MINOR               05
+#define VERSION_MINOR               06
 #define VERSION_REVISION            0
 #define VERSION_BUILD               0
 
