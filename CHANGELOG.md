@@ -19,7 +19,7 @@
 ### Version 0.02 (2018-01-06)
 
 - Added Visual Studio 2017 support.
-- Added x64 build configurarion.
+- Added x64 build configuration.
 - Added Cake build script.
 - Add appveyor configuration for using Cake build system.
 - Bug fixes.
